@@ -14,3 +14,10 @@ html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Inter,sans-
 .fade-out{animation:fadeOut .5s ease forwards}
 @keyframes fadeOut{to{opacity:0;transform:scale(.98)}}
 .fade-in{opacity:1}
+.stage-hidden {
+  display: none;
+}
+.stage-visible {
+  display: block;
+  opacity: 1 !important;
+}
