@@ -18,9 +18,14 @@ function typeText(text, speed = 40){
 goBtn.addEventListener('click', ()=>{
   start.classList.add('fade-out');
   setTimeout(()=>{
-    start.hidden = true;
-    stage.hidden = false;
-    stage.classList.add('fade-in');
+    start.classList.add("fade-out");
+
+setTimeout(() => {
+  start.style.display = "none";
+  stage.classList.remove("stage-hidden");
+  stage.classList.add("stage-visible");
+  typeText(MESSAGE);
+}, 480);
     typeText(MESSAGE);
   }, 480);
 });
