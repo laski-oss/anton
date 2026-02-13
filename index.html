@@ -3,35 +3,39 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Animoitu viesti</title>
-  <meta name="description" content="Paina nappia ja katso animoitu viesti." />
-  <meta name="theme-color" content="#0b1020" />
+  <title>Animoitu viesti + ääni + Kela‑nappi</title>
+  <meta name="description" content="Paina nappia ja katso animoitu viesti ääniefektillä. Stage-vaiheessa linkki Kela.fi-sivulle.">
+  <meta name="theme-color" content="#0b1020">
   <style>
     :root{
-      --bg: #0b1020; --fg: #e6eaf2; --muted:#93a0b4; --accent:#22d3ee; --accent2:#10b981;
-      --fs: clamp(1.4rem, 3.8vw, 2.6rem);
+      --bg:#0b1020; --fg:#e6eaf2; --muted:#93a0b4;
+      --accent:#22d3ee; --accent2:#10b981; --accent3:#8b5cf6;
+      --fs:clamp(1.6rem,4.2vw,3rem);
     }
     :root.light{
-      --bg:#ffffff; --fg:#0f172a; --muted:#4b5563; --accent:#2563eb; --accent2:#22c55e;
+      --bg:#ffffff; --fg:#0f172a; --muted:#4b5563;
+      --accent:#2563eb; --accent2:#22c55e; --accent3:#a855f7;
     }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Inter,sans-serif;background:var(--bg);color:var(--fg)}
     a{color:var(--accent)}
     .wrap{min-height:100%;display:grid;place-items:center;padding:2rem}
+
     .card{
-      width:min(820px, 94vw);
+      width:min(920px,94vw);
       background:linear-gradient(180deg, rgba(255,255,255,.06), transparent 120%);
       border:1px solid rgba(255,255,255,.12);
       border-radius:16px; padding:2rem; text-align:center;
-      box-shadow:0 12px 36px rgba(0,0,0,.35);
+      box-shadow:0 12px 36px rgba(0,0,0,.35); position:relative; overflow:hidden;
     }
-    h1{margin:.2rem 0 .6rem;font-size:clamp(1.8rem,4.2vw,2.4rem)}
-    p{margin:.25rem 0 1.1rem;color:var(--muted)}
     .row{display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;align-items:center}
+
+    h1{margin:.2rem 0 .6rem;font-size:clamp(1.8rem,4vw,2.6rem)}
+    p{margin:.25rem 0 1.1rem;color:var(--muted)}
 
     .btn{
       appearance:none; cursor:pointer; border:0; font-weight:700;
-      padding:.8rem 1.1rem; border-radius:12px; color:#001018;
+      padding:.85rem 1.15rem; border-radius:12px; color:#001018;
       background:linear-gradient(135deg,var(--accent),var(--accent2));
       box-shadow:0 10px 24px color-mix(in oklab, var(--accent) 35%, transparent);
       transition:transform .06s ease, filter .2s ease;
@@ -43,109 +47,135 @@
       box-shadow:none;
     }
 
-    #stage{display:none; opacity:0; transition:opacity .5s ease}
-    #stage.show{ display:block; opacity:1 }
+    .topbar{
+      position:fixed; inset: 12px 12px auto auto; display:flex; gap:.5rem; z-index:999;
+    }
 
+    /* Stage näkyvyys */
+    #stage{display:none; opacity:0; transition:opacity .6s ease}
+    #stage.show{display:block; opacity:1}
+
+    /* Tekstikenttä + animaatiot */
     .typewrap{
-      font-weight:800; font-size:var(--fs); line-height:1.2; letter-spacing:.4px;
-      margin: 1.2rem 0 1.2rem;
-      border-right:2px solid color-mix(in oklab, var(--fg) 80%, transparent);
+      font-weight:800; font-size:var(--fs); line-height:1.15; letter-spacing:.4px;
+      margin:1.2rem 0 1.4rem;
       white-space:pre-wrap; overflow:hidden;
-      background: linear-gradient(90deg, #fff, #c7d2fe);
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,.35));
+      position:relative;
+    }
+    .typewrap .char{
+      display:inline-block; transform:translate3d(0,10px,0) scale(.95) rotate(var(--r,0deg));
+      opacity:0; will-change: transform, opacity, filter;
+      background:linear-gradient(90deg,#fff, #c7d2fe);
       -webkit-background-clip:text; background-clip:text; color:transparent;
       text-shadow: 0 0 24px color-mix(in oklab, var(--accent) 25%, transparent);
-      filter: drop-shadow(0 6px 18px rgba(0,0,0,.35));
-      animation: caret .8s steps(1) infinite;
+      filter: blur(.6px);
+      animation: popIn .7s cubic-bezier(.2,.8,.2,1) forwards;
     }
-    @keyframes caret { 50%{ border-color:transparent } }
+    @keyframes popIn{
+      60%{ opacity:1; transform:translate3d(0,-2px,0) scale(1.04); filter: blur(0) }
+      100%{ opacity:1; transform:translate3d(0,0,0) scale(1) }
+    }
 
-    .topbar{
-      position:fixed; inset: 12px 12px auto auto; display:flex; gap:.5rem;
-      z-index:5;
+    /* Taustapulssi stageen */
+    .pulse{
+      position:absolute; inset:-20%; background:
+        radial-gradient(900px 600px at 15% 20%, color-mix(in oklab, var(--accent) 20%, transparent), transparent 60%),
+        radial-gradient(1200px 800px at 85% 80%, color-mix(in oklab, var(--accent2) 20%, transparent), transparent 60%),
+        radial-gradient(1400px 900px at 50% 0%, color-mix(in oklab, var(--accent3) 15%, transparent), transparent 60%);
+      filter: blur(40px) saturate(140%);
+      opacity:.25; pointer-events:none; z-index:0;
+      animation: breathe 6s ease-in-out infinite;
     }
+    @keyframes breathe { 50%{ transform:scale(1.03) } }
+
     .tip{font-size:.9rem;color:var(--muted);margin-top:.6rem}
 
-    /* Konfetti */
-    .burst{ position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:9 }
-    .dot{ position:absolute; width:8px; height:8px; border-radius:50%; opacity:.95;
+    /* Konfetti kerros */
+    .burst{ position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:998 }
+    .dot{ position:absolute; width:9px; height:9px; border-radius:50%; opacity:.95;
           background: radial-gradient(circle at 30% 30%, #fff, var(--accent));
           transform: translate(-50%,-50%) scale(0); }
 
-    /* Prefers-reduced-motion = ei animaatioita */
+    /* Vähemmän liikettä -asetus */
     @media (prefers-reduced-motion: reduce){
       *{ animation:none !important; transition:none !important }
-      .typewrap{ border-right:none }
+      .typewrap .char{ opacity:1; transform:none !important; filter:none !important }
+      .pulse{ display:none }
     }
   </style>
 </head>
 <body>
-  <!-- Ylänapit: teema ja ohita -->
+  <!-- Yläreunan napit: teema + ohitus + Äänet -->
   <div class="topbar">
     <button id="themeToggle" class="btn ghost" title="Vaihda teema">🌙</button>
     <button id="skipBtn" class="btn ghost" title="Ohita animaatio">Ohita</button>
+    <button id="muteBtn" class="btn ghost" title="Äänet pois/päälle">🔊</button>
   </div>
 
   <main class="wrap">
     <!-- Startti -->
     <section id="start" class="card" aria-label="Startti">
       <h1>Tervetuloa</h1>
-      <p>Paina nappia – sen jälkeen näytetään animoitu viesti.</p>
+      <p>Paina nappia – sen jälkeen näytetään animoitu viesti ja kuuluu kevyt ääniefekti.</p>
       <div class="row">
         <button id="goBtn" class="btn">Näytä viesti</button>
-        <button id="shareBtn" class="btn ghost">Jaa</button>
       </div>
       <p class="tip">Vihje: paina myös <strong>Enter</strong> käynnistääksesi.</p>
     </section>
 
     <!-- Stage -->
     <section id="stage" class="card" aria-live="polite" aria-label="Animoitu viesti">
+      <div class="pulse" aria-hidden="true"></div>
       <div class="typewrap" id="type"></div>
-      <div class="row">
+      <div class="row" style="margin-top:.2rem">
         <button id="copyBtn" class="btn ghost">Kopioi teksti</button>
         <button id="backBtn" class="btn ghost">Takaisin alkuun</button>
+        <!-- UUSI NAPPI KELAAN -->
+        <button id="kelaBtn" class="btn" title="Avaa kela.fi">Siirry Kela.fi</button>
       </div>
     </section>
   </main>
 
-  <!-- Konfetti-kerros -->
+  <!-- Konfetti -->
   <div class="burst" id="burst" aria-hidden="true"></div>
 
   <script>
     /***************
      * ASETUKSET
      ***************/
-    // Vaihda tähän oma, asiallinen viesti:
-    const MESSAGE = "Anton – tervetuloa!\\nTämä on animoitu tervehdys. 😎";
-
-    const TYPING_SPEED = 38; // ms/merkki (0 = kirjoita heti)
+    // Vaihda tähän oma, asiallinen viestisi:
+    const MESSAGE = "Anton – tervetuloa!\\nNyt tulee näyttävä animaatio ja äänitehoste. ✨";
+    const BASE_TYPING_DELAY = 18; // per merkki ms ennen kirjaimen animaation aloitusta (stagger)
 
     /***************
      * ELEMENTIT
      ***************/
     const start   = document.getElementById('start');
     const stage   = document.getElementById('stage');
+    const typeEl  = document.getElementById('type');
+
     const goBtn   = document.getElementById('goBtn');
     const backBtn = document.getElementById('backBtn');
     const copyBtn = document.getElementById('copyBtn');
-    const shareBtn= document.getElementById('shareBtn');
     const skipBtn = document.getElementById('skipBtn');
-    const typeEl  = document.getElementById('type');
     const themeToggle = document.getElementById('themeToggle');
-    const burstLayer  = document.getElementById('burst');
+    const muteBtn = document.getElementById('muteBtn');
+    const kelaBtn = document.getElementById('kelaBtn');
+    const burstLayer = document.getElementById('burst');
 
     /***************
      * TEEMA
      ***************/
-    const THEME_KEY = 'theme';
-    const prefDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const THEME_KEY='theme';
     const savedTheme = localStorage.getItem(THEME_KEY);
+    const prefDark = matchMedia('(prefers-color-scheme: dark)').matches;
     if (savedTheme === 'light' || (!savedTheme && !prefDark)) {
       document.documentElement.classList.add('light');
       themeToggle.textContent = '☀️';
-    } else {
-      themeToggle.textContent = '🌙';
-    }
-    themeToggle.addEventListener('click', ()=>{
+    } else themeToggle.textContent = '🌙';
+
+    themeToggle.addEventListener('click',()=>{
       document.documentElement.classList.toggle('light');
       const isLight = document.documentElement.classList.contains('light');
       themeToggle.textContent = isLight ? '☀️' : '🌙';
@@ -153,86 +183,145 @@
     });
 
     /***************
-     * KIRJOITUSKONE
+     * ÄÄNI (WebAudio) – kevyt whoosh + chime
      ***************/
-    function typeMessage(el, text, speed = TYPING_SPEED){
-      el.textContent = '';
-      if (speed <= 0 || window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-        el.textContent = text; // näytä heti
-        return;
-      }
-      let i = 0;
-      const tick = () => {
-        el.textContent = text.slice(0, i++);
-        if (i <= text.length) {
-          const prev = text[i-1] || '';
-          setTimeout(tick, prev === "\n" ? speed * 6 : speed);
-        }
-      };
-      tick();
+    let audioCtx = null, muted = false;
+
+    function ensureAudio(){
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
+    function envGain(time, values){
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, time);
+      // values: [ [tOffset,gainValue], ... ]  (exp ramp for smoothness)
+      values.forEach(([dt, v], i)=>{
+        const t = time + dt;
+        if (i===0) g.gain.linearRampToValueAtTime(v, t);
+        else g.gain.exponentialRampToValueAtTime(Math.max(0.0001, v), t);
+      });
+      return g;
+    }
+    function noiseWhoosh(){
+      if (muted || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      // White noise buffer
+      const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.6, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i=0;i<data.length;i++) data[i] = (Math.random()*2-1) * (1 - i/data.length);
+      const src = audioCtx.createBufferSource(); src.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass'; filter.frequency.setValueAtTime(8000, now);
+      filter.Q.value = 0.6;
+
+      const g = envGain(now, [[0.01, 0.6],[0.25, 0.18],[0.55, 0.0001]]);
+      src.connect(filter).connect(g).connect(audioCtx.destination);
+      src.start();
+    }
+    function chime(){
+      if (muted || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const g = envGain(now, [[0.005,0.7],[0.25,0.2],[0.5,0.0001]]);
+      osc.type='sine';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(1320, now+0.35);
+      osc.connect(g).connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now+0.55);
+    }
+    function playFx(){
+      ensureAudio(); noiseWhoosh(); chime();
+    }
+    muteBtn.addEventListener('click', ()=>{
+      muted = !muted;
+      muteBtn.textContent = muted ? '🔇' : '🔊';
+      muteBtn.title = muted ? 'Äänet pois' : 'Äänet päällä';
+    });
 
     /***************
      * KONFETTI
      ***************/
-    function burstAt(x, y, count = 26){
+    function burstAt(x, y, count=30){
       burstLayer.innerHTML = '';
-      for (let i=0;i<count;i++){
-        const d = document.createElement('div');
-        d.className = 'dot';
-        d.style.left = x + 'px';
-        d.style.top  = y + 'px';
+      for(let i=0;i<count;i++){
+        const d=document.createElement('div'); d.className='dot';
+        d.style.left = x+'px'; d.style.top = y+'px';
         burstLayer.appendChild(d);
-        const ang = Math.random()*2*Math.PI;
-        const dist = 60 + Math.random()*140;
-        const t = 400 + Math.random()*500;
+        const ang=Math.random()*2*Math.PI, dist=70+Math.random()*150, t=420+Math.random()*520;
         d.animate(
           [
-            { transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
-            { transform: `translate(calc(-50% + ${Math.cos(ang)*dist}px), calc(-50% + ${Math.sin(ang)*dist}px)) scale(0.8)`, opacity: 0 }
+            { transform:'translate(-50%,-50%) scale(1)', opacity:1 },
+            { transform:`translate(calc(-50% + ${Math.cos(ang)*dist}px), calc(-50% + ${Math.sin(ang)*dist}px)) scale(0.9)`, opacity:0 }
           ],
-          { duration: t, easing: 'cubic-bezier(.2,.6,.2,1)', fill: 'forwards' }
+          { duration:t, easing:'cubic-bezier(.2,.6,.2,1)', fill:'forwards' }
         );
       }
       setTimeout(()=> burstLayer.innerHTML='', 1000);
     }
 
     /***************
+     * TEKSTIN EDISTYNYT ANIMAATIO (kirjainkohtainen)
+     ***************/
+    function animateMessage(text){
+      typeEl.innerHTML = '';
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const chars = [...text];
+      const baseDelay = reduced ? 0 : BASE_TYPING_DELAY;
+
+      chars.forEach((ch, i)=>{
+        const span = document.createElement('span');
+        span.className = 'char';
+        span.textContent = ch;
+        // pieni satunnainen rotaatio ja viive
+        span.style.setProperty('--r', (Math.random()*2-1)*4 + 'deg');
+        span.style.animationDelay = (i*baseDelay + Math.random()*30) + 'ms';
+        typeEl.appendChild(span);
+        if (ch === '\n') { span.style.display='block'; span.style.height='.4rem'; }
+      });
+    }
+
+    /***************
      * NÄKYMÄT
      ***************/
-    function showStage(){
-      start.style.display = 'none';
+    function showStage(skipAnim=false){
+      start.style.display='none';
       stage.classList.add('show');
-      typeMessage(typeEl, MESSAGE);
+      if (skipAnim) {
+        typeEl.textContent = MESSAGE;
+      } else {
+        animateMessage(MESSAGE);
+      }
     }
     function showStart(){
       stage.classList.remove('show');
-      start.style.display = '';
-      typeEl.textContent = '';
+      start.style.display='';
+      typeEl.textContent='';
     }
 
     /***************
      * TAPAHTUMAT
      ***************/
     goBtn.addEventListener('click', (e)=>{
-      // Konfetti napin kohdalta:
+      // Konfetti + ääni + siirtymä
       const r = e.currentTarget.getBoundingClientRect();
       burstAt(r.left + r.width/2, r.top + r.height/2);
-      showStage();
+      playFx();
+      showStage(false);
     });
 
     backBtn.addEventListener('click', showStart);
 
-    // Enter-näppäin käynnistää startista
+    // Enter käynnistää startista
     document.addEventListener('keydown', e=>{
-      const stageHidden = !stage.classList.contains('show');
-      if (e.key === 'Enter' && stageHidden) goBtn.click();
+      const onStart = start.style.display !== 'none';
+      if (e.key === 'Enter' && onStart) goBtn.click();
     });
 
-    // Ohita animaatio → näytä teksti heti
+    // Ohita animaatio
     skipBtn.addEventListener('click', ()=>{
-      showStage();
-      typeMessage(typeEl, MESSAGE, 0);
+      playFx();
+      showStage(true);
     });
 
     // Kopioi teksti
@@ -240,21 +329,13 @@
       try{
         await navigator.clipboard.writeText(typeEl.textContent);
         copyBtn.textContent = 'Kopioitu!';
-        setTimeout(()=> copyBtn.textContent = 'Kopioi teksti', 1200);
-      }catch{
-        alert('Kopiointi ei onnistunut tässä selaimessa.');
-      }
+        setTimeout(()=> copyBtn.textContent='Kopioi teksti', 1200);
+      }catch{ alert('Kopiointi ei onnistu tässä selaimessa.'); }
     });
 
-    // Jaa-nappi
-    shareBtn.addEventListener('click', async ()=>{
-      if (navigator.share){
-        try{
-          await navigator.share({ title: document.title, text: 'Katso tämä!', url: location.href });
-        }catch{/* peruttu */}
-      }else{
-        alert('Jakaminen ei ole tuettu tässä selaimessa.');
-      }
+    // Kela-nappi → avaa uuteen välilehteen
+    kelaBtn.addEventListener('click', ()=>{
+      window.open('https://www.kela.fi', '_blank', 'noopener,noreferrer');
     });
   </script>
 </body>
