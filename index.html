@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Animoitu viesti + ääni + Kela‑nappi</title>
-  <meta name="description" content="Paina nappia ja katso animoitu viesti ääniefektillä. Stage-vaiheessa linkki Kela.fi-sivulle.">
+  <title>Animoitu viesti + taustavideo + logo</title>
+  <meta name="description" content="Paina nappia ja katso animoitu viesti ääniefektillä. Taustavideo ja logo mukana.">
   <meta name="theme-color" content="#0b1020">
   <style>
     :root{
@@ -18,15 +18,35 @@
     }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Inter,sans-serif;background:var(--bg);color:var(--fg)}
-    a{color:var(--accent)}
-    .wrap{min-height:100%;display:grid;place-items:center;padding:2rem}
+    a{color:var(--accent);text-decoration:none}
+    .wrap{min-height:100%;display:grid;place-items:center;padding:2rem;position:relative;z-index:2}
 
+    /* --- Taustavideo & overlay --- */
+    .bg-video{
+      position:fixed; inset:0;
+      width:100%; height:100%;
+      object-fit:cover;
+      z-index:-2;
+      filter:saturate(115%) contrast(105%) brightness(85%);
+      background:#000;
+    }
+    .bg-overlay{
+      position:fixed; inset:0; z-index:-1; pointer-events:none;
+      background:
+        radial-gradient(1200px 800px at 20% 15%, rgba(34,211,238,.20), transparent 60%),
+        radial-gradient(1400px 900px at 85% 85%, rgba(139,92,246,.18), transparent 60%),
+        linear-gradient(180deg, rgba(0,0,0,.50), rgba(0,0,0,.60));
+      mix-blend-mode:screen;
+    }
+
+    /* --- Kortit ja napit --- */
     .card{
       width:min(920px,94vw);
       background:linear-gradient(180deg, rgba(255,255,255,.06), transparent 120%);
       border:1px solid rgba(255,255,255,.12);
       border-radius:16px; padding:2rem; text-align:center;
       box-shadow:0 12px 36px rgba(0,0,0,.35); position:relative; overflow:hidden;
+      backdrop-filter:saturate(130%) blur(6px);
     }
     .row{display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;align-items:center}
 
@@ -48,14 +68,42 @@
     }
 
     .topbar{
-      position:fixed; inset: 12px 12px auto auto; display:flex; gap:.5rem; z-index:999;
+      position:fixed; inset: 12px 12px auto auto; display:flex; gap:.5rem; z-index:1001;
     }
 
-    /* Stage näkyvyys */
+    /* --- Logo (inline SVG) --- */
+    .brand{
+      position:fixed; top:14px; left:14px; z-index:1001;
+      display:flex; align-items:center; gap:.6rem;
+      color:var(--fg);
+      text-shadow:0 2px 10px rgba(0,0,0,.4);
+      user-select:none;
+    }
+    .brand .name{ font-weight:900; letter-spacing:.4px }
+    .brand svg{
+      width:48px; height:48px; display:block;
+      filter: drop-shadow(0 6px 16px rgba(0,0,0,.35));
+      transition: transform .25s ease;
+    }
+    .brand:hover svg{ transform: rotate(-2deg) scale(1.03) }
+    /* Shine-efekti tekstille */
+    .brand .name{
+      background: linear-gradient(90deg, #fff, #e5e7eb);
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      position:relative; overflow:hidden;
+    }
+    .brand .name::after{
+      content:""; position:absolute; inset:0 -150% 0 0;
+      background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.8) 12%, transparent 24%);
+      transform: translateX(-100%); animation: shine 3.6s ease-in-out infinite;
+    }
+    @keyframes shine{ 60%{ transform: translateX(200%) } 100%{ transform: translateX(200%) } }
+
+    /* --- Stage näkyvyys --- */
     #stage{display:none; opacity:0; transition:opacity .6s ease}
     #stage.show{display:block; opacity:1}
 
-    /* Tekstikenttä + animaatiot */
+    /* --- Tekstin kirjainkohtainen animaatio --- */
     .typewrap{
       font-weight:800; font-size:var(--fs); line-height:1.15; letter-spacing:.4px;
       margin:1.2rem 0 1.4rem;
@@ -77,35 +125,49 @@
       100%{ opacity:1; transform:translate3d(0,0,0) scale(1) }
     }
 
-    /* Taustapulssi stageen */
-    .pulse{
-      position:absolute; inset:-20%; background:
-        radial-gradient(900px 600px at 15% 20%, color-mix(in oklab, var(--accent) 20%, transparent), transparent 60%),
-        radial-gradient(1200px 800px at 85% 80%, color-mix(in oklab, var(--accent2) 20%, transparent), transparent 60%),
-        radial-gradient(1400px 900px at 50% 0%, color-mix(in oklab, var(--accent3) 15%, transparent), transparent 60%);
-      filter: blur(40px) saturate(140%);
-      opacity:.25; pointer-events:none; z-index:0;
-      animation: breathe 6s ease-in-out infinite;
-    }
-    @keyframes breathe { 50%{ transform:scale(1.03) } }
-
     .tip{font-size:.9rem;color:var(--muted);margin-top:.6rem}
 
-    /* Konfetti kerros */
+    /* --- Konfetti --- */
     .burst{ position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:998 }
     .dot{ position:absolute; width:9px; height:9px; border-radius:50%; opacity:.95;
           background: radial-gradient(circle at 30% 30%, #fff, var(--accent));
           transform: translate(-50%,-50%) scale(0); }
 
-    /* Vähemmän liikettä -asetus */
+    /* --- Vähemmän liikettä --- */
     @media (prefers-reduced-motion: reduce){
       *{ animation:none !important; transition:none !important }
       .typewrap .char{ opacity:1; transform:none !important; filter:none !important }
-      .pulse{ display:none }
+      .bg-video{ filter:brightness(40%); }
     }
   </style>
 </head>
 <body>
+  <!-- TAUSTAVIDEO (laita samaan kansioon bg.mp4 ja/tai bg.webm) -->
+  <video class="bg-video" id="bgVideo" autoplay muted loop playsinline poster="">
+    <source src="bg.webm" type="video/webm">
+    <source src="bg.mp4"  type="video/mp4">
+  </video>
+  <div class="bg-overlay" aria-hidden="true"></div>
+
+  <!-- LOGO -->
+  <a class="brand" href="#" aria-label="Etusivu (logo)">
+    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#22d3ee"/>
+          <stop offset=".6" stop-color="#10b981"/>
+          <stop offset="1" stop-color="#8b5cf6"/>
+        </linearGradient>
+      </defs>
+      <circle cx="32" cy="32" r="28" fill="url(#lg)"/>
+      <path d="M18 39 L32 16 L46 39 Z M28 39 L36 39"
+            fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- “Star” -->
+      <path d="M50 14 l3 1 -3 1 -1 3 -1-3 -3-1 3-1 1-3z" fill="#fff" opacity=".9"/>
+    </svg>
+    <span class="name">ANTON</span>
+  </a>
+
   <!-- Yläreunan napit: teema + ohitus + Äänet -->
   <div class="topbar">
     <button id="themeToggle" class="btn ghost" title="Vaihda teema">🌙</button>
@@ -126,12 +188,10 @@
 
     <!-- Stage -->
     <section id="stage" class="card" aria-live="polite" aria-label="Animoitu viesti">
-      <div class="pulse" aria-hidden="true"></div>
       <div class="typewrap" id="type"></div>
       <div class="row" style="margin-top:.2rem">
         <button id="copyBtn" class="btn ghost">Kopioi teksti</button>
         <button id="backBtn" class="btn ghost">Takaisin alkuun</button>
-        <!-- UUSI NAPPI KELAAN -->
         <button id="kelaBtn" class="btn" title="Avaa kela.fi">Siirry Kela.fi</button>
       </div>
     </section>
@@ -145,8 +205,8 @@
      * ASETUKSET
      ***************/
     // Vaihda tähän oma, asiallinen viestisi:
-    const MESSAGE = "Anton – tervetuloa!\\nNyt tulee näyttävä animaatio ja äänitehoste. ✨";
-    const BASE_TYPING_DELAY = 18; // per merkki ms ennen kirjaimen animaation aloitusta (stagger)
+    const MESSAGE = "Anton – tervetuloa!\\nNyt taustalla pyörii video, logo loistaa ja animaatio tekee taikoja. ✨";
+    const BASE_TYPING_DELAY = 18; // ms per merkki (stagger)
 
     /***************
      * ELEMENTIT
@@ -163,6 +223,7 @@
     const muteBtn = document.getElementById('muteBtn');
     const kelaBtn = document.getElementById('kelaBtn');
     const burstLayer = document.getElementById('burst');
+    const bgVideo = document.getElementById('bgVideo');
 
     /***************
      * TEEMA
@@ -183,7 +244,7 @@
     });
 
     /***************
-     * ÄÄNI (WebAudio) – kevyt whoosh + chime
+     * ÄÄNI (WebAudio) – whoosh + chime
      ***************/
     let audioCtx = null, muted = false;
 
@@ -193,7 +254,6 @@
     function envGain(time, values){
       const g = audioCtx.createGain();
       g.gain.setValueAtTime(0, time);
-      // values: [ [tOffset,gainValue], ... ]  (exp ramp for smoothness)
       values.forEach(([dt, v], i)=>{
         const t = time + dt;
         if (i===0) g.gain.linearRampToValueAtTime(v, t);
@@ -204,16 +264,11 @@
     function noiseWhoosh(){
       if (muted || !audioCtx) return;
       const now = audioCtx.currentTime;
-      // White noise buffer
       const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.6, audioCtx.sampleRate);
       const data = buffer.getChannelData(0);
       for (let i=0;i<data.length;i++) data[i] = (Math.random()*2-1) * (1 - i/data.length);
       const src = audioCtx.createBufferSource(); src.buffer = buffer;
-
-      const filter = audioCtx.createBiquadFilter();
-      filter.type = 'lowpass'; filter.frequency.setValueAtTime(8000, now);
-      filter.Q.value = 0.6;
-
+      const filter = audioCtx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.setValueAtTime(8000, now); filter.Q.value=.6;
       const g = envGain(now, [[0.01, 0.6],[0.25, 0.18],[0.55, 0.0001]]);
       src.connect(filter).connect(g).connect(audioCtx.destination);
       src.start();
@@ -261,19 +316,18 @@
     }
 
     /***************
-     * TEKSTIN EDISTYNYT ANIMAATIO (kirjainkohtainen)
+     * TEKSTIN ANIMAATIO (kirjainkohtainen)
      ***************/
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
     function animateMessage(text){
       typeEl.innerHTML = '';
-      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
       const chars = [...text];
-      const baseDelay = reduced ? 0 : BASE_TYPING_DELAY;
+      const baseDelay = reducedMotion.matches ? 0 : BASE_TYPING_DELAY;
 
       chars.forEach((ch, i)=>{
         const span = document.createElement('span');
         span.className = 'char';
         span.textContent = ch;
-        // pieni satunnainen rotaatio ja viive
         span.style.setProperty('--r', (Math.random()*2-1)*4 + 'deg');
         span.style.animationDelay = (i*baseDelay + Math.random()*30) + 'ms';
         typeEl.appendChild(span);
@@ -287,7 +341,7 @@
     function showStage(skipAnim=false){
       start.style.display='none';
       stage.classList.add('show');
-      if (skipAnim) {
+      if (skipAnim || reducedMotion.matches) {
         typeEl.textContent = MESSAGE;
       } else {
         animateMessage(MESSAGE);
@@ -303,7 +357,6 @@
      * TAPAHTUMAT
      ***************/
     goBtn.addEventListener('click', (e)=>{
-      // Konfetti + ääni + siirtymä
       const r = e.currentTarget.getBoundingClientRect();
       burstAt(r.left + r.width/2, r.top + r.height/2);
       playFx();
@@ -333,10 +386,21 @@
       }catch{ alert('Kopiointi ei onnistu tässä selaimessa.'); }
     });
 
-    // Kela-nappi → avaa uuteen välilehteen
-    kelaBtn.addEventListener('click', ()=>{
-      window.open('https://www.kela.fi', '_blank', 'noopener,noreferrer');
-    });
+    // Kela-nappi → uuteen välilehteen
+    kelaBtn.addEventListener('click', ()=> window.open('https://www.kela.fi', '_blank', 'noopener,noreferrer'));
+
+    // Prefers-reduced-motion: pysäytä taustavideo
+    function handleMotionPref(){
+      if (!bgVideo) return;
+      if (reducedMotion.matches){
+        try{ bgVideo.pause(); }catch{}
+      }else{
+        try{ bgVideo.play().catch(()=>{}); }catch{}
+      }
+    }
+    reducedMotion.addEventListener('change', handleMotionPref);
+    handleMotionPref();
   </script>
 </body>
 </html>
+``
