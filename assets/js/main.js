@@ -1,5 +1,5 @@
 // Turvallinen oletusviesti. Vaihda tähän oma viestisi:
-const MESSAGE = "Tervetuloa! Tämä on esimerkkiteksti, jonka voit vaihtaa haluamaksesi.";
+const MESSAGE = "Anton laske päiviäs oon tulos 40 kmh with ahmed sun ovelle";
 
 const start = document.getElementById('start');
 const stage = document.getElementById('stage');
